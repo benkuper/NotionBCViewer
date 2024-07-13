@@ -1,0 +1,218 @@
+body {
+    /* dark theme */
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    position: absolute;
+    width:100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+}
+
+
+.filters {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding:10px;
+    background-color: #2a2a2a;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .4);
+    z-index: 1;
+}
+
+.autocomplete-filter {
+    width: 100%;
+}
+
+.volunteer-filter,
+.show-filter,
+.place-filter {
+    margin: 0 10px;
+}
+
+input {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #3e3e3e;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.autocomplete-dropdown {
+    background-color: #2e2e2e !important;
+    color: #d4d4d4 !important;
+    border: 1px solid #3e3e3e;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.autocomplete-dropdown .autocomplete-list-item {
+    padding: 5px;
+    color: #d4d4d4 !important;
+}
+
+
+.autocomplete-clear-button
+{
+    top:.85em !important;
+}
+
+.pastQuests
+{
+    width: 100%;
+    text-align: center;
+}
+
+.affectations {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dates {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.date {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    background-color: #2e2e2e;
+    border-radius: 5px;
+    padding: 0 10px 5px;
+}
+
+.affectation {
+    width: 100%;
+    margin: 5px;
+    padding: 5px;
+    background-color: #3e3e3e;
+    border-radius: 5px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.affectations h2 {
+    margin: 0;
+    text-align: center;
+}
+
+
+.overlap {
+    background-color: #771111;
+    color: #e3a8a8;
+}
+
+.next {
+    background-color: #d69c30;
+    color: #1e1e1e;
+}
+
+.next.overlap
+{
+    background-color: #ba5018;
+    color: #d3cabb;
+
+}
+
+.past
+{
+   opacity: 0.5;
+
+}
+
+
+.dayName {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.aff-icon {
+    font-size: 2em;
+    position: absolute;
+    right: -0.5em;
+    top: -0.5em;
+}
+
+.aff-name {
+    margin: 0.2em 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.aff-infos {
+    display: flex;
+    align-items: center;
+}
+
+.spacer {
+    flex-grow: 1;
+}
+
+.aff-time {
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.aff-lieu {
+    font-size: 1em;
+}
+
+.aff-friends {
+    font-size: 0.8em;
+    color: #bbbbbb;
+    text-align: right;
+}
+
+.next .aff-friends {
+    color: #1e1e1e;
+}
+
+.overlap .aff-friends {
+    color: #e3a8a8;
+}
+
+.qr {
+    width: 100%;
+    text-align: center;
+}
+
+.qr svg {
+    max-width: 300px;
+}
+
+pre {
+    outline: 1px solid #ccc;
+    padding: 5px;
+    margin: 5px;
+}
+
+pre .string {
+    color: green;
+}
+
+pre .number {
+    color: darkorange;
+}
+
+pre .boolean {
+    color: blue;
+}
+
+pre .null {
+    color: magenta;
+}
+
+pre .key {
+    color: red;
+}

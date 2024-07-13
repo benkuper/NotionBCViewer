@@ -1,32 +1,25 @@
 <script>
-    import { databases } from "$lib/db";
     import { onMount } from "svelte";
     import AutoComplete from "simple-svelte-autocomplete";
+    import {
+        databases,
+        currentVolunteer,
+        currentShow,
+        currentPlace,
+        getVolunteerByName,
+        getShowByName,
+        getPlaceByName,
+        mode,
+        urlName,
+        urlShow,
+        urlPlace,
+        showPastQuests,
+    } from "./store";
+    import AffectationList from "./AffectationList.svelte";
 
-    $: volunteersDB = $databases?.volunteers;
-    $: questsDB = $databases?.quests;
-    $: showsDB = $databases?.shows;
-    $: questsTypesDB = $databases?.questsTypes;
-    $: affectationsDB = $databases?.affectations;
+    const dayNames = ["Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
-    let urlName = null;
-    let urlVolunteer;
-
-    onMount(async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        urlName = urlParams.get("nom");
-    });
-
-   let currentVolunteer;
-
-    $: 
-    {
-        if(currentVolunteer == null && urlName) {
-            currentVolunteer = getVolunteerByName(urlName);
-        }
-    }
-
-    $: volunteerChoices = volunteersDB?.pages.map((item) => {
+    $: volunteerChoices = $databases?.volunteers.pages.map((item) => {
         return {
             data: item,
             name: item.properties.Pseudo.title[0].plain_text,
@@ -37,246 +30,145 @@
         };
     });
 
-    const dayNames = ["Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    $: showsChoices = $databases?.shows.pages.map((item) => {
+        return {
+            data: item,
+            name: item.properties.Nom.title[0].plain_text,
+        };
+    });
+
+    $: placesChoices = $databases?.places.pages.map((item) => {
+        return {
+            data: item,
+            name: item.properties.Name.title[0].plain_text,
+        };
+    });
+
+    onMount(async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlName.set(urlParams.get("nom"));
+        urlShow.set(urlParams.get("show"));
+        urlPlace.set(urlParams.get("place"));
+    });
+
+    $: {
+        if ($databases) {
+            if ($currentVolunteer == null && $urlName) {
+                currentVolunteer.set(getVolunteerByName($urlName));
+                mode.set("volunteer");
+            } else if ($currentShow == null && $urlShow) {
+                currentShow.set(getShowByName($urlShow));
+                mode.set("show");
+            } else if ($currentPlace == null && $urlPlace) {
+                currentPlace.set(getPlaceByName($urlPlace));
+                mode.set("place");
+            }
+        }
+    }
 
     $: volunteerChoices?.sort((a, b) => {
         return a.name.localeCompare(b.name);
     });
-
-    function getVolunteerByID(id) { 
-        if (!volunteersDB) return null;
-        return volunteersDB.pages.find((volunteer) => volunteer.id == id);
-    }
-
-    function getVolunteerByName(name) {
-        if (!volunteersDB) return null;
-        return volunteersDB.pages.find(
-            (volunteer) => volunteer.properties.Pseudo.title[0].plain_text.replace(/\s/g, '').toLowerCase() == name.toLowerCase() ||
-                volunteer.properties.Nom.rich_text[0].plain_text.trim() == name ||
-                volunteer.properties["Prénom"].rich_text[0].plain_text == name
-        );
-    }
-
-    function getVolunteerAffectations(volunteer) {
-        if (!affectationsDB) return null;
-
-        let dates = {};
-        dayNames.forEach((dayName) => {
-            dates[dayName] = [];
-        });
-
-        affectationsDB.pages.forEach((affectation) => {
-            if (
-                !affectation.properties["Bénévoles"].relation.some(
-                    (person) => person.id == volunteer.id,
-                )
-            )
-                return;
-
-            const date = new Date(affectation.properties["Horaire"].date.start);
-            let dayName = dayNames[date.getDate() - 13];
-            if (dates[dayName]) dates[dayName].push(affectation);
-        }, []);
-
-        return dates;
-    }
-
-    function syntaxHighlight(json) {
-        if (json == null) return;
-        if (typeof json != "string") {
-            json = JSON.stringify(json, undefined, 2);
-        }
-        json = json
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-        return json.replace(
-            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-            function (match) {
-                var cls = "number";
-                if (/^"/.test(match)) {
-                    if (/:$/.test(match)) {
-                        cls = "key";
-                    } else {
-                        cls = "string";
-                    }
-                } else if (/true|false/.test(match)) {
-                    cls = "boolean";
-                } else if (/null/.test(match)) {
-                    cls = "null";
-                }
-                return '<span class="' + cls + '">' + match + "</span>";
-            },
-        );
-    }
-
-    function datePretty(date) {
-        return new Date(date).toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    }
 </script>
 
 {#if $databases}
-    Bénévole : 
-    <AutoComplete
-        dropdownClassName="autocomplete-dropdown"
-        items={volunteerChoices}
-        bind:value={currentVolunteer}
-        valueFieldName="data"
-        labelFunction={(volunteer) =>
-            volunteer.name + " (" + volunteer.fullName + ")"}
-    />
-    <div class="affectations">
-        {#if currentVolunteer}
-            <h2>
-                Voila tes quêtes, {currentVolunteer.properties.Pseudo.title[0]
-                    .plain_text} !
-            </h2>
-
-            <div class="dates">
-                {#each Object.entries(getVolunteerAffectations(currentVolunteer)) as date}
-                    <div class="date">
-                        <p class="dayName">{date[0]}</p>
-                        {#each date[1] as affectation}
-                            <div class="affectation">
-                                <span class="aff-name">
-                                    {affectation.properties["Nom"].title[0]
-                                        .plain_text}
-                                </span>
-                                <span class="aff-time">
-                                    {datePretty(
-                                        affectation.properties["Horaire"].date
-                                            .start,
-                                    )} à {datePretty(
-                                        affectation.properties["Horaire"].date
-                                            .end,
-                                    )}
-                                </span>
-
-                                <p class="aff-lieu">
-                                    {affectation.properties["Lieu"].formula.string}
-                                </p>
-
-                                <p class="aff-friends">Avec 
-                                    {affectation.properties["Bénévoles"].relation
-                                        .filter((volunteer)=> getVolunteerByID(volunteer.id) != currentVolunteer).map((volunteer) => {
-                                            return getVolunteerByID(volunteer.id).properties.Pseudo.title[0].plain_text;
-                                        })
-                                        .join(", ")}
-                                </p>
-                            </div>
-                        {/each}
-                    </div>
-                {/each}
+    <div class="main">
+        <div class="filters">
+            <div class="volunteer-filter">
+                <AutoComplete
+                    html5autocomplete={false}
+                    autocompleteOffValue="none"
+                    showClear={true}
+                    hideArrow={true}
+                    className="autocomplete-filter"
+                    dropdownClassName="autocomplete-dropdown"
+                    placeholder="Nom du bénévole"
+                    items={volunteerChoices}
+                    valueFunction={(value) => {
+                        mode.set("volunteer");
+                        currentVolunteer.set(value?.data);
+                    }}
+                    labelFunction={(volunteer) =>
+                        volunteer.name + " (" + volunteer.fullName + ")"}
+                />
             </div>
-        {/if}
+
+            <div class="show-filter">
+                <AutoComplete
+                    html5autocomplete={false}
+                    showClear={true}
+                    hideArrow={true}
+                    autocompleteOffValue="none"
+                    className="autocomplete-filter"
+                    dropdownClassName="autocomplete-dropdown"
+                    placeholder="Nom du spectacle"
+                    items={showsChoices}
+                    valueFunction={(value) => {
+                        mode.set("show");
+                        currentShow.set(value?.data);
+                    }}
+                    labelFunction={(show) => show.name}
+                />
+            </div>
+
+            <div class="place-filter">
+                <AutoComplete
+                    html5autocomplete={false}
+                    showClear={true}
+                    hideArrow={true}
+                    autocompleteOffValue="none"
+                    className="autocomplete-filter"
+                    dropdownClassName="autocomplete-dropdown"
+                    placeholder="Nom du lieu"
+                    items={placesChoices}
+                    valueFunction={(value) => {
+                        mode.set("place");
+                        currentPlace.set(value?.data);
+                    }}
+                    labelFunction={(place) => place.name}
+                />
+            </div>
+
+            <div class="pastQuests">
+                <input type="checkbox" bind:checked={$showPastQuests} />
+                <label for="showPastQuests">Montrer les quêtes passées</label>
+            </div>
+        </div>
+
+        {#key $showPastQuests}
+        <div class="affectations-wrapper">
+            <AffectationList />
+        </div>
+        {/key}
     </div>
-    <!-- <pre>{@html syntaxHighlight(affectationsDB)}</pre> -->
+{:else}
+    <div class="loading">Chargement...</div>
 {/if}
 
+
 <style>
-    :global(body) {
-        /* dark theme */
-        background-color: #1e1e1e;
-        color: #d4d4d4;
-        font-family: Arial, sans-serif;
-    }
-
-    :global(input) {
-        background-color: #2e2e2e;
-        color: #d4d4d4;
-        border: 1px solid #3e3e3e;
-        border-radius: 5px;
-        padding: 5px;
-    }
-
-    :global(.autocomplete-dropdown) {
-        background-color: #2e2e2e !important;
-        color: #d4d4d4 !important;
-        border: 1px solid #3e3e3e;
-        border-radius: 5px;
-        padding: 5px;
-    }
-
-    :global(.autocomplete-dropdown .autocomplete-list-item) {
-        padding: 5px;
-        color: #d4d4d4 !important;
-    }
-
-    .affectations {
+    .main {
         display: flex;
-        width: 100%;
         flex-direction: column;
-        align-items: center;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+        flex-gap: 0;
     }
 
-    .dates {
+
+    .affectations-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        padding-top: 20px;
+    }
+
+    .loading
+    {
         display: flex;
-        width: 100%;
-        flex-wrap: wrap;
         justify-content: center;
-        width: 100%;
-    }
-
-    .date {
-        display: flex;
-        flex-grow: 1;
-        flex-direction: column;
         align-items: center;
-        margin: 10px;
-        background-color: #2e2e2e;
-        border-radius: 5px;
-        padding: 0 10px 5px;
-    }
-
-    .affectation {
-        width: 100%;
-        margin: 5px;
-        padding: 5px;
-        background-color: #3e3e3e;
-        border-radius: 5px;
-    }
-
-    .dayName {
-        font-size: 1.5em;
-        font-weight: bold;
-        margin: 10px;
-    }
-
-    .aff-name {
-        font-size: 1.2em;
-        font-weight: bold;
-    }
-
-    .aff-time {
-        font-size: 1em;
-    }
-
-    .aff-lieu {
-        font-size: 1em;
-    }
-
-
-    pre {
-        outline: 1px solid #ccc;
-        padding: 5px;
-        margin: 5px;
-    }
-    :global(pre .string) {
-        color: green;
-    }
-    :global(pre .number) {
-        color: darkorange;
-    }
-    :global(pre .boolean) {
-        color: blue;
-    }
-    :global(pre .null) {
-        color: magenta;
-    }
-    :global(pre .key) {
-        color: red;
+        height: 100%;
     }
 </style>
