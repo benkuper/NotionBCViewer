@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import AutoComplete from "simple-svelte-autocomplete";
+    import { page } from "$app/stores";
     import {
         databases,
         currentVolunteer,
@@ -44,13 +45,6 @@
         };
     });
 
-    onMount(async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        urlName.set(urlParams.get("nom"));
-        urlShow.set(urlParams.get("show"));
-        urlPlace.set(urlParams.get("place"));
-    });
-
     $: {
         if ($databases) {
             if ($currentVolunteer == null && $urlName) {
@@ -69,6 +63,39 @@
     $: volunteerChoices?.sort((a, b) => {
         return a.name.localeCompare(b.name);
     });
+
+    $: {
+        urlName.set(null);
+        urlShow.set(null);
+        urlPlace.set(null);
+        if ($databases) {
+            $page.url.searchParams.forEach((value, key) => {
+                if (key === "nom") {
+                    urlName.set(value);
+                    mode.set("volunteer");
+                    currentVolunteer.set(getVolunteerByName(value));
+                } else if (key === "show") {
+                    urlShow.set(value);
+                    mode.set("show");
+                    currentShow.set(getShowByName(value));
+                } else if (key === "place") {
+                    urlPlace.set(value);
+                    mode.set("place");
+                    currentPlace.set(getPlaceByName(value));
+                }
+            });
+        }
+    }
+
+    // onMount(async () => {
+    //     handleURLParams($page.url.searchParams);
+    // });
+
+    // function handleURLParams(searchParams) {
+    //    urlName.set(searchParams.get("nom"));
+    //     urlShow.set(searchParams.get("show"));
+    //     urlPlace.set(searchParams.get("place"));
+    // }
 </script>
 
 {#if $databases}
@@ -136,15 +163,14 @@
         </div>
 
         {#key $showPastQuests}
-        <div class="affectations-wrapper">
-            <AffectationList />
-        </div>
+            <div class="affectations-wrapper">
+                <AffectationList />
+            </div>
         {/key}
     </div>
 {:else}
     <div class="loading">Chargement...</div>
 {/if}
-
 
 <style>
     .main {
@@ -157,15 +183,13 @@
         flex-gap: 0;
     }
 
-
     .affectations-wrapper {
         flex: 1;
         overflow-y: auto;
         padding-top: 20px;
     }
 
-    .loading
-    {
+    .loading {
         display: flex;
         justify-content: center;
         align-items: center;

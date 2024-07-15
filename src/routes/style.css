@@ -105,6 +105,9 @@ input {
     text-align: center;
 }
 
+.affectation a{
+    color: inherit;
+}
 
 .overlap {
     background-color: #771111;
@@ -141,6 +144,7 @@ input {
     position: absolute;
     right: -0.5em;
     top: -0.5em;
+    filter: drop-shadow(-2px 4px 4px rgba(0, 0, 0, 0.3));
 }
 
 .aff-name {
@@ -166,6 +170,12 @@ input {
 
 .aff-lieu {
     font-size: 1em;
+}
+
+.aff-show 
+{
+    font-size: 0.8em;
+    text-align: right;
 }
 
 .aff-friends {

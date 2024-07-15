@@ -10,6 +10,7 @@
         getPlaceAffectations,
         getVolunteerByID,
         mode,
+        getQuestByID,
     } from "./store";
     import { qr } from "@svelte-put/qr/svg";
 
@@ -18,6 +19,7 @@
     let headerText;
     let qrData;
     let volunteerFilter;
+    let showShow;
 
     $: {
         if ($mode == "volunteer" && $currentVolunteer) {
@@ -30,7 +32,9 @@
             qrData =
                 "https://benjamin.kuperberg.fr/bc2024/?nom=" +
                 $currentVolunteer?.properties.Pseudo.title[0].plain_text;
-            volunteerFilter = (volunteer) => volunteer.id != $currentVolunteer.id;
+            volunteerFilter = (volunteer) =>
+                volunteer.id != $currentVolunteer.id;
+            showShow = true;
         } else if ($mode == "show" && $currentShow) {
             item = $currentShow;
             affectationFunction = getShowAffectations;
@@ -41,6 +45,7 @@
                 "https://benjamin.kuperberg.fr/bc2024/?show=" +
                 $currentShow.properties.Nom.title[0].plain_text;
             volunteerFilter = (volunteer) => true;
+            showShow = false;
         } else if ($mode == "place" && $currentPlace) {
             item = $currentPlace;
             affectationFunction = getPlaceAffectations;
@@ -52,6 +57,7 @@
                 $currentPlace.properties.Name.title[0].plain_text;
 
             volunteerFilter = (volunteer) => true;
+            showShow = true;
         }
     }
 </script>
@@ -94,18 +100,53 @@
                                 </span>
                                 <span class="spacer"></span>
                                 <span class="aff-lieu">
-                                    {affectation.properties["Lieu"].formula
-                                        .string}
+                                    <a
+                                        href="{window.location.href.split(
+                                            '?',
+                                        )[0]}?place={affectation.properties[
+                                            'Lieu'
+                                        ].formula.string}"
+                                    >
+                                        {affectation.properties["Lieu"].formula
+                                            .string}
+                                    </a>
                                 </span>
                             </div>
+
+                            {#if showShow}
+                                <p class="aff-show">
+                                    <a
+                                        href="{window.location.href.split(
+                                            '?',
+                                        )[0]}?show={affectation.properties[
+                                            'Spectacle'
+                                        ].formula.string}"
+                                    >
+                                        {affectation.properties["Spectacle"]
+                                            .formula.string}
+                                    </a>
+                                </p>
+                            {/if}
                             <p class="aff-friends">
                                 Avec
-                                {affectation.properties["Bénévoles"].relation
+                                {@html affectation.properties[
+                                    "Bénévoles"
+                                ].relation
                                     .filter(volunteerFilter)
                                     .map((volunteer) => {
-                                        return getVolunteerByID(volunteer.id)
-                                            .properties.Pseudo.title[0]
-                                            .plain_text;
+                                        let vName = getVolunteerByID(
+                                            volunteer.id,
+                                        ).properties.Pseudo.title[0].plain_text;
+
+                                        return (
+                                            '<a href="' +
+                                            window.location.href.split("?")[0] +
+                                            "?nom=" +
+                                            vName +
+                                            '">' +
+                                            vName +
+                                            "</a>"
+                                        );
                                     })
                                     .join(", ")}
                             </p>
