@@ -30,7 +30,7 @@
             qrData =
                 "https://benjamin.kuperberg.fr/bc2024/?nom=" +
                 $currentVolunteer?.properties.Pseudo.title[0].plain_text;
-            volunteerFilter = (volunteer) => volunteer != $currentVolunteer;
+            volunteerFilter = (volunteer) => volunteer.id != $currentVolunteer.id;
         } else if ($mode == "show" && $currentShow) {
             item = $currentShow;
             affectationFunction = getShowAffectations;
