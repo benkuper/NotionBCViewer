@@ -7,6 +7,7 @@
         currentVolunteer,
         currentShow,
         currentPlace,
+        currentType,
         getVolunteerByName,
         getShowByName,
         getPlaceByName,
@@ -14,7 +15,14 @@
         urlName,
         urlShow,
         urlPlace,
+        urlType,
         showPastQuests,
+        printMode,
+        getTypeByName,
+        getTypeByID,
+
+        showPhone
+
     } from "./store";
     import AffectationList from "./AffectationList.svelte";
 
@@ -45,7 +53,14 @@
         };
     });
 
-    $: {
+    $: typesChoices = $databases?.questsTypes.pages.map((item) => {
+        return {
+            data: item,
+            name: item.properties.Name.title[0].plain_text,
+        };
+    });
+
+    $: 
         if ($databases) {
             if ($currentVolunteer == null && $urlName) {
                 currentVolunteer.set(getVolunteerByName($urlName));
@@ -56,7 +71,10 @@
             } else if ($currentPlace == null && $urlPlace) {
                 currentPlace.set(getPlaceByName($urlPlace));
                 mode.set("place");
-            }
+            }else if($currentType == null && $urlType){
+                currentType.set(getTypeByName($urlType));
+                mode.set("type");
+
         }
     }
 
@@ -82,6 +100,17 @@
                     urlPlace.set(value);
                     mode.set("place");
                     currentPlace.set(getPlaceByName(value));
+                }else if(key == "type")
+                {
+                    urlType.set(value);
+                    mode.set("type");
+                    currentType.set(getTypeByName(value));
+                }else if(key == "print")
+                {
+                    printMode.set(value);
+                }else if(key == "showPhone")
+                {
+                    showPhone.set(value);
                 }
             });
         }
@@ -99,7 +128,7 @@
 </script>
 
 {#if $databases}
-    <div class="main">
+    <div class="main {$printMode?"print":""}">
         <div class="filters">
             <div class="volunteer-filter">
                 <AutoComplete
@@ -146,13 +175,31 @@
                     autocompleteOffValue="none"
                     className="autocomplete-filter"
                     dropdownClassName="autocomplete-dropdown"
-                    placeholder="Nom du lieu"
+                    placeholder="Lieu"
                     items={placesChoices}
                     valueFunction={(value) => {
                         mode.set("place");
                         currentPlace.set(value?.data);
                     }}
                     labelFunction={(place) => place.name}
+                />
+            </div>
+
+            <div class="type-filter">
+                <AutoComplete
+                    html5autocomplete={false}
+                    showClear={true}
+                    hideArrow={true}
+                    autocompleteOffValue="none"
+                    className="autocomplete-filter"
+                    dropdownClassName="autocomplete-dropdown"
+                    placeholder="Type de quete"
+                    items={typesChoices}
+                    valueFunction={(value) => {
+                        mode.set("type");
+                        currentType.set(value?.data);
+                    }}
+                    labelFunction={(type) => type.name}
                 />
             </div>
 

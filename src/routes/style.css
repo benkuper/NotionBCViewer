@@ -10,6 +10,13 @@ body {
     margin: 0;
 }
 
+body:has(.print) {
+    overflow: visible;
+    background-color: #ffffff;
+    color:#222222;
+    height:auto;
+
+}
 
 .filters {
     display: flex;
@@ -19,6 +26,11 @@ body {
     background-color: #2a2a2a;
     box-shadow: 0 10px 20px rgba(0, 0, 0, .4);
     z-index: 1;
+}
+
+.print .filters
+{
+    display:none;
 }
 
 .autocomplete-filter {
@@ -90,6 +102,21 @@ input {
     padding: 0 10px 5px;
 }
 
+.print .date
+{
+    background-color:#eeeeee;
+}
+
+
+
+@media (max-width: 768px) {
+    .date {
+        width: 100%;
+    }
+}
+
+
+
 .affectation {
     width: 100%;
     margin: 5px;
@@ -100,16 +127,34 @@ input {
     box-sizing: border-box;
 }
 
+.print .affectation
+{
+    background-color:#ffffff;
+    border:solid 1px #cccccc;
+    color:#222222;
+}
+
 .affectations h2 {
     margin: 0;
     text-align: center;
 }
 
-.affectation a{
+.print .affectations h2
+{
+    padding:0;
+}
+
+.print .affectations h2 .print-icon
+{
+    display:none;
+}
+
+
+.affectations a{
     color: inherit;
 }
 
-.overlap {
+.volunteer .overlap {
     background-color: #771111;
     color: #e3a8a8;
 }
@@ -119,7 +164,7 @@ input {
     color: #1e1e1e;
 }
 
-.next.overlap
+.volunteer .next.overlap
 {
     background-color: #ba5018;
     color: #d3cabb;
@@ -145,6 +190,12 @@ input {
     right: -0.5em;
     top: -0.5em;
     filter: drop-shadow(-2px 4px 4px rgba(0, 0, 0, 0.3));
+    cursor: pointer;
+}
+
+.print .aff-icon
+{
+    display:none;
 }
 
 .aff-name {
@@ -152,6 +203,11 @@ input {
     font-size: 1.2em;
     font-weight: bold;
     text-align: center;
+}
+
+.print .aff-name
+{
+    display:none;
 }
 
 .aff-infos {
@@ -172,6 +228,11 @@ input {
     font-size: 1em;
 }
 
+.print .aff-lieu
+{
+    display:none;
+}
+
 .aff-show 
 {
     font-size: 0.8em;
@@ -184,12 +245,22 @@ input {
     text-align: right;
 }
 
+.print .aff-friends
+{
+    color:rgb(199, 123, 31) !important;
+}
+
 .next .aff-friends {
     color: #1e1e1e;
 }
 
-.overlap .aff-friends {
+.volunteer .overlap .aff-friends {
     color: #e3a8a8;
+}
+
+.print .qr
+{
+    display:none;
 }
 
 .qr {

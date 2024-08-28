@@ -6,6 +6,8 @@ export const databases = writable(null);
 export const currentVolunteer = writable(null);
 export const currentShow = writable(null);
 export const currentPlace = writable(null);
+export const currentType = writable(null);
+
 export const mode = writable("");
 
 export const dayNames = ["Mercredi", "Jeudi", "Vendredi", "Samedi"];
@@ -13,10 +15,17 @@ export const dayNames = ["Mercredi", "Jeudi", "Vendredi", "Samedi"];
 export const urlName = writable(null);
 export const urlShow = writable(null);
 export const urlPlace = writable(null);
+export const urlType = writable(null);
 
 export const showPastQuests = writable(true);
 
+
+export const printMode = writable(false);
+export const showPhone = writable(false);
+
 // GET DATA
+
+console.log("fetch");
 
 fetch("https://benjamin.kuperberg.fr/bc2024/databases.php", {
     method: "POST",
@@ -34,6 +43,7 @@ fetch("https://benjamin.kuperberg.fr/bc2024/databases.php", {
             return;
         }
 
+        console.log("Data is fetched");
         databases.set(data);
     });
 
@@ -61,8 +71,8 @@ export function getVolunteerByName(name) {
 }
 
 export function getPlaceByID(id) {
-    if (!get(databases).place) return null;
-    return get(databases).place.pages.find((place) => place.id == id);
+    if (!get(databases).places) return null;
+    return get(databases).places.pages.find((place) => place.id == id);
 }
 
 export function getPlaceByName(name) {
@@ -73,8 +83,8 @@ export function getPlaceByName(name) {
 }
 
 export function getShowByID(id) {
-    if (!get(databases).show) return null;
-    return get(databases).show.pages.find((show) => show.id == id);
+    if (!get(databases).shows) return null;
+    return get(databases).shows.pages.find((show) => show.id == id);
 }
 
 export function getShowByName(name) {
@@ -85,6 +95,20 @@ export function getShowByName(name) {
     );
 }
 
+export function getTypeByName(type)
+{
+    if (!get(databases).questsTypes) return null;
+    return get(databases).questsTypes.pages.find(
+        (questType) =>
+            questType.properties.Name.title[0].plain_text.trim().toLowerCase() == type.toLowerCase()
+    );
+}
+
+export function getTypeByID(id)
+{
+    if (!get(databases).questsTypes) return null;
+    return get(databases).questsTypes.pages.find((questType) => questType.id == id);
+}
 
 
 
@@ -99,21 +123,31 @@ export function getVolunteerAffectations(volunteer) {
 
 export function getShowAffectations(show) {
     return getAffectations((affectation) => {
-        let quest = getQuestByID(affectation.properties["Quête"].relation[0].id);
+        let quest = getQuestByID(affectation.properties["Quête"]?.relation[0]?.id);
+        if(quest == null) return null;
         return quest.properties["Spectacle"].relation.some((s) => s.id == show.id)
     });
 }
 
 export function getPlaceAffectations(place) {
     return getAffectations((affectation) => {
-        return affectation.properties["Lieu Rollup"].rollup.array[0].relation[0].id == place.id;
+        return affectation.properties["Lieu Rollup"].rollup.array[0]?.relation[0]?.id == place.id;
+    });
+}
+
+export function getTypeAffectations(type) {
+    return getAffectations((affectation) => {
+        let typeID = getQuestByID(affectation.properties["Quête"].relation[0].id).properties["Type de Quete"].relation[0].id;
+        return typeID == type.id;
     });
 }
 
 export function getAffectationIcon(affectation) {
     var quest = getQuestByID(
-        affectation.properties["Quête"].relation[0].id,
+        affectation.properties["Quête"].relation[0]?.id,
     );
+
+    if(quest == null) return "";
     var questType = getQuestTypeByID(
         quest.properties["Type de Quete"].relation[0].id,
     );
@@ -166,7 +200,14 @@ export function getAffectations(filter) {
         
         let today = Date.now();// new Date("08/15/2024"); //for testing
 
-        let dayName = dayNames[date.getDate() - 14];
+
+        let dayDate = date.getDate() - 14;
+        //hours before 5am are considered the day before
+        if (date.getHours() < 5) {
+            dayDate--;
+        }
+
+        let dayName = dayNames[dayDate];
 
         let dateItem = { affectation: affectation, isClosest: false };
 
